@@ -7,7 +7,6 @@ import PickedList from "@/components/PickedList";
 import ResultModal from "@/components/ResultModal";
 import { fetchEntries, parseSheetUrl, type Entry } from "@/lib/sheet";
 import { useSoundManager } from "@/lib/sound";
-import { isYouTubeUrl } from "@/lib/youtube";
 import { appConfig } from "@/lib/appConfig";
 
 const LS_URL = "wheel:sheetUrl";
@@ -17,23 +16,6 @@ const MAX_VISIBLE_SLICES = 24;
 const normalize = (s: string) => s.trim().toLowerCase();
 
 type IndexedEntry = { entry: Entry; rowIndex: number };
-type YouTubeAutoOpenState = "opened" | "blocked";
-type SpinResult = IndexedEntry & {
-  youtubeAutoOpenState?: YouTubeAutoOpenState;
-};
-
-function openYouTubeDirectly(url: string): YouTubeAutoOpenState {
-  try {
-    const opened = window.open(url, "_blank");
-    if (!opened) return "blocked";
-    try {
-      opened.opener = null;
-    } catch {}
-    return "opened";
-  } catch {
-    return "blocked";
-  }
-}
 
 function sampleVisible(eligible: IndexedEntry[], mustInclude?: IndexedEntry): IndexedEntry[] {
   if (eligible.length <= MAX_VISIBLE_SLICES) {
@@ -61,7 +43,7 @@ export default function Page() {
   const [pickedIndices, setPickedIndices] = useState<Set<number>>(new Set());
   const [savedSheets, setSavedSheets] = useState<SavedSheet[]>([]);
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState<SpinResult | null>(null);
+  const [result, setResult] = useState<IndexedEntry | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visibleEntries, setVisibleEntries] = useState<IndexedEntry[]>([]);
@@ -69,7 +51,6 @@ export default function Page() {
   const [spinSeq, setSpinSeq] = useState(0);
   const [showDebug, setShowDebug] = useState(false);
   const initRef = useRef(false);
-  const pendingResultRef = useRef<SpinResult | null>(null);
   const { muted, playSpin, stopSpin, playReveal, toggleMute } = useSoundManager();
 
   useEffect(() => {
@@ -227,11 +208,7 @@ export default function Page() {
       display = sampleVisible(eligible, winner);
     }
     const idx = display.findIndex((e) => e.rowIndex === winner.rowIndex);
-    const youtubeAutoOpenState = isYouTubeUrl(winner.entry.contents)
-      ? openYouTubeDirectly(winner.entry.contents)
-      : undefined;
 
-    pendingResultRef.current = { ...winner, youtubeAutoOpenState };
     setVisibleEntries(display);
     setTargetIndex(idx >= 0 ? idx : null);
     setSpinning(true);
@@ -242,17 +219,7 @@ export default function Page() {
     setSpinning(false);
     setTargetIndex(null);
     const item = visibleEntries[idx];
-    const pendingResult = pendingResultRef.current;
-    pendingResultRef.current = null;
-    if (item) {
-      setResult({
-        ...item,
-        youtubeAutoOpenState:
-          pendingResult?.rowIndex === item.rowIndex
-            ? pendingResult.youtubeAutoOpenState
-            : undefined,
-      });
-    }
+    if (item) setResult(item);
   };
 
   const handleCloseModal = () => {
@@ -278,7 +245,6 @@ export default function Page() {
     setSpinning(false);
     setTargetIndex(null);
     setResult(null);
-    pendingResultRef.current = null;
     setSpinSeq((s) => s + 1000);
   };
 
@@ -436,7 +402,6 @@ export default function Page() {
 
       <ResultModal
         entry={result?.entry ?? null}
-        youtubeAutoOpenState={result?.youtubeAutoOpenState}
         onClose={handleCloseModal}
         onOpen={playReveal}
       />

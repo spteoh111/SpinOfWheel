@@ -1,6 +1,6 @@
 # Spin the Wheel
 
-A customizable web app that picks a random name from a Google Sheet and reveals that row's content. YouTube rows open directly on YouTube, and text rows appear as full-screen messages.
+A customizable web app that picks a random name from a Google Sheet and reveals that row's content. YouTube rows play in a full-screen result view when embedding is allowed, and text rows appear as full-screen messages.
 
 The app is built with Next.js, TypeScript, and Tailwind CSS. It has no backend requirement and does not need API keys.
 
@@ -33,10 +33,10 @@ Requirements:
 - Drawn names are removed from eligibility until **Reset**.
 - **Reload** re-fetches the sheet while preserving picked names where possible.
 - **Save** stores frequently used sheet URLs in browser `localStorage`.
-- YouTube rows open the original YouTube link directly from the **Spin** click.
-- Timestamped YouTube links such as `&t=68s` are preserved.
+- YouTube rows play in a full-screen embedded result view when embedding is allowed.
+- Timestamped YouTube links such as `&t=68s` are preserved for autoplay and replay.
+- Videos that block embedding show a clean **Open on YouTube** fallback.
 - Text rows show as large full-screen messages.
-- Browser popup blocking is handled with a fallback **Open on YouTube** button.
 
 ## Customize
 
@@ -108,7 +108,7 @@ Set public customization values through your hosting provider's environment vari
 - **Runtime:** Client-side app that fetches CSV from `docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid={GID}`.
 - **Persistence:** Browser `localStorage` for the sheet URL and saved sheets list.
 - **Picked state:** Browser memory only; page reload clears picked names.
-- **YouTube handling:** YouTube URLs open directly from the user-triggered **Spin** click to avoid embed restrictions.
+- **YouTube handling:** YouTube URLs use the IFrame Player API for embedded playback, Play, Replay, and Stop controls. Videos that cannot be embedded show an **Open on YouTube** fallback.
 
 ## File Map
 

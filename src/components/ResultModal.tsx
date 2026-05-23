@@ -10,7 +10,6 @@ import {
 
 type Props = {
   entry: Entry | null;
-  youtubeAutoOpenState?: "opened" | "blocked";
   onClose: () => void;
   onOpen?: () => void;
 };
@@ -58,7 +57,6 @@ function loadYouTubeApi(): Promise<void> {
 
 export default function ResultModal({
   entry,
-  youtubeAutoOpenState,
   onClose,
   onOpen,
 }: Props) {
@@ -94,11 +92,6 @@ export default function ResultModal({
   }, [open, onClose]);
 
   useEffect(() => {
-    if (youtubeAutoOpenState) {
-      setPlayerReady(false);
-      setPlayerError(null);
-      return;
-    }
     if (!videoId || !containerRef.current) return;
     let cancelled = false;
     setPlayerReady(false);
@@ -150,7 +143,7 @@ export default function ResultModal({
       setPlayerReady(false);
       setPlayerError(null);
     };
-  }, [videoId, startSeconds, youtubeAutoOpenState]);
+  }, [videoId, startSeconds]);
 
   if (!open || !entry) return null;
 
@@ -193,27 +186,7 @@ export default function ResultModal({
 
         {videoId ? (
           <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-4 sm:px-8 sm:pb-6">
-            {youtubeAutoOpenState ? (
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-8 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-cyan-50 sm:text-3xl">
-                    {youtubeAutoOpenState === "opened"
-                      ? "Opened on YouTube"
-                      : "Your browser blocked the YouTube window"}
-                  </p>
-                  <p className="mt-3 max-w-xl text-base leading-7 text-cyan-50/80 sm:text-lg">
-                    {youtubeAutoOpenState === "opened"
-                      ? "The video for this draw opened directly in a YouTube tab or window."
-                      : "The app tried to open the original YouTube link automatically. Use the button below if your browser blocked it."}
-                  </p>
-                </div>
-                {youtubeAutoOpenState === "blocked" && youtubeUrl && (
-                  <ControlLink href={youtubeUrl}>
-                    Open on YouTube
-                  </ControlLink>
-                )}
-              </div>
-            ) : playerError ? (
+            {playerError ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-8 text-center">
                 <div>
                   <p className="text-2xl font-bold text-amber-100 sm:text-3xl">
@@ -235,7 +208,7 @@ export default function ResultModal({
               </div>
             )}
             <div className="mt-4 flex shrink-0 flex-wrap items-center justify-center gap-3">
-              {!playerError && !youtubeAutoOpenState && (
+              {!playerError && (
                 <>
                   <ControlButton onClick={handlePlay} disabled={!playerReady}>
                     ▶ Play
