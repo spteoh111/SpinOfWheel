@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { appConfig } from "@/lib/appConfig";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "白雁气功 Spin the Wheel",
-  description: "Pick a random name from a Google Sheet and play their YouTube video.",
+  title: appConfig.name,
+  description: appConfig.description,
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: appConfig.logoSrc,
+    apple: appConfig.logoSrc,
   },
 };
 

@@ -1,10 +1,17 @@
 services:
   wheel:
-    build: .
-    container_name: spin-of-wheel
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Spin the Wheel}
+        NEXT_PUBLIC_APP_DESCRIPTION: ${NEXT_PUBLIC_APP_DESCRIPTION:-Pick a random name from a Google Sheet and reveal a YouTube video or message.}
+        NEXT_PUBLIC_SITE_LABEL: ${NEXT_PUBLIC_SITE_LABEL:-}
+        NEXT_PUBLIC_APP_CREDIT: ${NEXT_PUBLIC_APP_CREDIT:-}
+        NEXT_PUBLIC_LOGO_SRC: ${NEXT_PUBLIC_LOGO_SRC:-/logo.png}
+    container_name: ${CONTAINER_NAME:-spin-of-wheel}
     restart: unless-stopped
     ports:
-      - "3087:3087"
+      - "${APP_PORT:-3087}:3087"
     environment:
       - NODE_ENV=production
       - PORT=3087

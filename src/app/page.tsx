@@ -8,6 +8,7 @@ import ResultModal from "@/components/ResultModal";
 import { fetchEntries, parseSheetUrl, type Entry } from "@/lib/sheet";
 import { useSoundManager } from "@/lib/sound";
 import { isYouTubeUrl } from "@/lib/youtube";
+import { appConfig } from "@/lib/appConfig";
 
 const LS_URL = "wheel:sheetUrl";
 const LS_SAVED = "wheel:savedSheets";
@@ -282,17 +283,23 @@ export default function Page() {
   };
 
   const allPicked = entries.length > 0 && eligible.length === 0;
+  const buildLabel = process.env.NEXT_PUBLIC_BUILD_ID?.slice(-6) ?? "dev";
+  const metaParts = [
+    appConfig.siteLabel,
+    `build ${buildLabel}`,
+    appConfig.credit,
+  ].filter(Boolean);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-8">
       <header className="flex items-center justify-between">
         <h1 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
           <img
-            src="/logo.png"
-            alt="白雁气功"
+            src={appConfig.logoSrc}
+            alt={appConfig.name}
             className="h-10 w-10 rounded-md object-cover sm:h-12 sm:w-12"
           />
-          <span>白雁气功 Spin the Wheel</span>
+          <span>{appConfig.name}</span>
         </h1>
         <div className="flex items-center gap-2">
           <button
@@ -322,9 +329,11 @@ export default function Page() {
           >
             {showDebug ? "Hide debug" : "Debug"}
           </button>
-          <span className="text-xs text-white/40">
-            wheel.8cores.com · build {process.env.NEXT_PUBLIC_BUILD_ID?.slice(-6) ?? "dev"} · by SPJL
-          </span>
+          {metaParts.length > 0 && (
+            <span className="text-xs text-white/40">
+              {metaParts.join(" · ")}
+            </span>
+          )}
         </div>
       </header>
 
