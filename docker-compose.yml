@@ -1,0 +1,11 @@
+services:
+  wheel:
+    build: .
+    container_name: spin-of-wheel
+    restart: unless-stopped
+    ports:
+      - "3087:3087"
+    environment:
+      - NODE_ENV=production
+      - PORT=3087
+      - HOSTNAME=0.0.0.0
