@@ -2,7 +2,7 @@
 
 A customizable web app that picks a random name from a Google Sheet and reveals that row's content. YouTube rows play in a full-screen result view when embedding is allowed, and text rows appear as full-screen messages.
 
-The app is built with Next.js, TypeScript, and Tailwind CSS. It has no backend requirement and does not need API keys.
+The app is built with Next.js, TypeScript, and Tailwind CSS. It does not need API keys or a separate backend service.
 
 ## Quick Start
 
@@ -35,7 +35,7 @@ Requirements:
 - **Save** stores frequently used sheet URLs in browser `localStorage`.
 - YouTube rows play in a full-screen embedded result view when embedding is allowed.
 - Timestamped YouTube links such as `&t=68s` are preserved for autoplay and replay.
-- Videos that block embedding show a clean **Open on YouTube** fallback.
+- Videos that block embedding show a clean **Open on YouTube** fallback with the winner name and YouTube title.
 - Text rows show as large full-screen messages.
 
 ## Customize
@@ -99,6 +99,7 @@ Set public customization values through your hosting provider's environment vari
 - No Google API key is required.
 - No YouTube API key is required.
 - Sheet data is fetched client-side from Google's CSV export endpoint.
+- YouTube titles are fetched through a built-in Next.js route that reads the public YouTube page title.
 - Only use public `NEXT_PUBLIC_*` variables for browser-visible customization.
 - Keep secrets out of `.env.local`, and never commit credentials.
 
@@ -106,6 +107,7 @@ Set public customization values through your hosting provider's environment vari
 
 - **Stack:** Next.js 15 App Router, React 19, TypeScript, Tailwind CSS.
 - **Runtime:** Client-side app that fetches CSV from `docs.google.com/spreadsheets/d/{ID}/export?format=csv&gid={GID}`.
+- **Title lookup:** Built-in `/api/youtube-title` route fetches the public YouTube page title for fallback displays.
 - **Persistence:** Browser `localStorage` for the sheet URL and saved sheets list.
 - **Picked state:** Browser memory only; page reload clears picked names.
 - **YouTube handling:** YouTube URLs use the IFrame Player API for embedded playback, Play, Replay, and Stop controls. Videos that cannot be embedded show an **Open on YouTube** fallback.
@@ -115,6 +117,7 @@ Set public customization values through your hosting provider's environment vari
 ```text
 src/
 ├── app/
+│   ├── api/youtube-title/route.ts
 │   ├── layout.tsx
 │   ├── globals.css
 │   └── page.tsx

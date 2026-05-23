@@ -30,7 +30,13 @@ type YTPlayer = {
   stopVideo: () => void;
   seekTo: (sec: number, allowSeekAhead: boolean) => void;
   destroy: () => void;
+  getVideoData?: () => { title?: string };
 };
+
+function readPlayerTitle(player?: YTPlayer): string | null {
+  const title = player?.getVideoData?.().title?.trim();
+  return title || null;
+}
 
 function loadYouTubeApi(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
@@ -74,6 +80,7 @@ export default function ResultModal({
   const playerRef = useRef<YTPlayer | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  const [videoTitle, setVideoTitle] = useState<string | null>(null);
 
   const videoId = entry && isYouTubeUrl(entry.contents)
     ? extractYouTubeId(entry.contents)
@@ -81,6 +88,7 @@ export default function ResultModal({
   const startSeconds = entry && isYouTubeUrl(entry.contents)
     ? extractYouTubeStartSeconds(entry.contents)
     : 0;
+  const youtubeUrl = videoId && entry ? entry.contents : null;
 
   useEffect(() => {
     if (!open) return;
@@ -90,6 +98,29 @@ export default function ResultModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!youtubeUrl) {
+      setVideoTitle(null);
+      return;
+    }
+
+    let cancelled = false;
+    setVideoTitle(null);
+
+    fetch(`/api/youtube-title?url=${encodeURIComponent(youtubeUrl)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { title?: string | null } | null) => {
+        if (!cancelled && data?.title) {
+          setVideoTitle(data.title);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [youtubeUrl]);
 
   useEffect(() => {
     if (!videoId || !containerRef.current) return;
@@ -114,11 +145,16 @@ export default function ResultModal({
           onReady: (event: { target?: YTPlayer }) => {
             if (cancelled) return;
             setPlayerReady(true);
+            const title = readPlayerTitle(event.target);
+            if (title) setVideoTitle(title);
             event.target?.playVideo();
           },
-          onError: (event: { data?: number }) => {
+          onError: (event: { data?: number; target?: YTPlayer }) => {
             if (cancelled) return;
             const blocked = event.data === 101 || event.data === 150;
+            const title =
+              readPlayerTitle(event.target) ?? readPlayerTitle(playerRef.current ?? undefined);
+            if (title) setVideoTitle(title);
             try {
               playerRef.current?.destroy();
             } catch {}
@@ -153,7 +189,7 @@ export default function ResultModal({
     playerRef.current?.playVideo();
   };
   const handleStop = () => playerRef.current?.pauseVideo();
-  const youtubeUrl = videoId ? entry.contents : null;
+  const fallbackTitle = `${entry.name}: ${videoTitle ?? "YouTube video"}`;
 
   return (
     <div
@@ -190,10 +226,7 @@ export default function ResultModal({
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-8 text-center">
                 <div>
                   <p className="text-2xl font-bold text-amber-100 sm:text-3xl">
-                    Open this video on YouTube
-                  </p>
-                  <p className="mt-3 max-w-xl text-base leading-7 text-amber-100/80 sm:text-lg">
-                    {playerError}
+                    {fallbackTitle}
                   </p>
                 </div>
                 {youtubeUrl && (
